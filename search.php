@@ -34,6 +34,7 @@ function find(Array $data)
         {
             if (!empty($line[$data[2]]) && strtolower($line[$data[2]]) === strtolower($data[3])) {
                 $result = implode(',', $line) . ";\r\n";
+                break;
             }
         }
         fclose($file);
