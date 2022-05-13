@@ -1,46 +1,52 @@
 <?php
 
 /**
- * @param $data
+ * @param $fileLink
+ * @param $colNum
+ * @param $searchString
  * @return string
  */
-function find(Array $data)
+function find($fileLink, $colNum, $searchString)
 {
-    if (empty($data[1])) {
-        return "Please specify the path to the file as the first parameter\r\n";
-    }
-    if (!file_exists($data[1])) {
-        return printf("File '%s' does not exist\r\n", $data[1]);
-    }
-    if ($file = fopen($data[1], 'rb')) {
-        if ('text/csv' !== mime_content_type( $file )) {
-            return "Please provide correct CSV file\r\n";
+    try {
+        if (empty($fileLink)) {
+            throw new Exception("Please specify the path to the file as the first parameter");
         }
-        if (!isset($data[2])) {
-            return "Second argument is required\r\n";
+        if (!file_exists($fileLink)) {
+            throw new Exception(printf("File '%s' does not exist", $fileLink));
         }
-        if ($data[2] < 0 || $data[2] > 3) {
-            return "Second argument must be between 0 and 3\r\n";
-        }
-        if (empty($data[3])) {
-            return "Third argument is required\r\n";
-        }
-        if (!is_numeric($data[2])) {
-            return "Second argument has to be an integer\r\n";
-        }
-
-        $result = "Nothing found\r\n";
-        while ($line = fgetcsv($file))
-        {
-            if (!empty($line[$data[2]]) && strtolower($line[$data[2]]) === strtolower($data[3])) {
-                $result = implode(',', $line) . ";\r\n";
-                break;
+        if ($file = fopen($fileLink, 'rb')) {
+            if ('text/csv' !== mime_content_type( $file )) {
+                throw new Exception("Please provide correct CSV file");
             }
+            if (!isset($colNum)) {
+                throw new Exception("Column number is required");
+            }
+            if ($colNum < 0 || $colNum > 3) {
+                throw new Exception("Column number must be between 0 and 3");
+            }
+            if (empty($searchString)) {
+                throw new Exception("Search string is required");
+            }
+            if (!is_numeric($colNum)) {
+                throw new Exception("Column number has to be an integer");
+            }
+
+            $result = "Nothing found\r\n";
+            while ($line = fgetcsv($file))
+            {
+                if (!empty($line[$colNum]) && strtolower($line[$colNum]) === strtolower($searchString)) {
+                    $result = implode(',', $line) . ";\r\n";
+                    break;
+                }
+            }
+            fclose($file);
+            return $result;
         }
-        fclose($file);
-        return $result;
+        throw new Exception("File is invalid");
+    } catch (Exception $e) {
+        echo $e->getMessage() . "\r\n";
     }
-    return "File is invalid\r\n";
 }
 
 function is_cli()
@@ -55,5 +61,12 @@ function is_cli()
 }
 
 if (is_cli()) {
-    echo find($argv);
+    try {
+        if (count($argv) !== 4) {
+            throw new Exception("Three parameters are required: file link, column number and search string");
+        }
+        echo find($argv[1], $argv[2], $argv[3]);
+    } catch(Exception $e) {
+        echo $e->getMessage() . "\r\n";
+    }
 }

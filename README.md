@@ -16,4 +16,4 @@ The number 2 represents the index of the column to search in (in the
 previous file the name) and Alberto represents the search key.
 
 ### Requirements
-* PHP >= 5.6.x
+* PHP >= 7.0.x
